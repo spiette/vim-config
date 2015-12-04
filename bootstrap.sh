@@ -17,7 +17,6 @@ git commit -m 'gitignore' .gitignore
 fi
 set -e
 cat << EOF | while read path url
-powerline https://github.com/Lokaltog/vim-powerline.git
 syntastic https://github.com/scrooloose/syntastic.git
 gnupg https://github.com/jamessan/vim-gnupg.git
 rsnapshot https://git.gitorious.org/spiette/vim-rsnapshot.git
