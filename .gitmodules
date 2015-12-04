@@ -40,3 +40,6 @@
 [submodule "bundle/vagrantfile"]
 	path = bundle/vagrantfile
 	url = https://github.com/robbevan/Vagrantfile.vim
+[submodule "bundle/textile"]
+	path = bundle/textile
+	url = https://github.com/timcharper/textile.vim
