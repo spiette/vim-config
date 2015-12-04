@@ -40,3 +40,6 @@
 [submodule "bundle/textile"]
 	path = bundle/textile
 	url = https://github.com/timcharper/textile.vim
+[submodule "bundle/jinja2-syntax"]
+	path = bundle/jinja2-syntax
+	url = https://github.com/Glench/Vim-Jinja2-Syntax
