@@ -58,7 +58,7 @@ if &term == 'xterm-256color'
     "colorscheme earendel
     "colorscheme proton
     colorscheme lucius
-    LuciusWhite
+    LuciusBlack
 elseif &term == 'xterm'
     set t_Co=16
     colorscheme desert
