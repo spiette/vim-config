@@ -67,6 +67,7 @@ else
     colorscheme desert
 endif
 
+let g:airline_powerline_fonts = 1
 if has('python')
     function _init_powerline()
         python << EOF
