@@ -68,19 +68,6 @@ else
 endif
 
 let g:airline_powerline_fonts = 1
-if has('python')
-    function _init_powerline()
-        python << EOF
-try:
-    from powerline.vim import setup as powerline_setup
-    powerline_setup()
-    del powerline_setup
-except:
-    pass
-EOF
-    endfunction
-    call _init_powerline()
-endif
 " }}}
 " folding {{{
 setlocal modeline
