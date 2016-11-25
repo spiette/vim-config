@@ -49,7 +49,7 @@ function! ListcharsToggle()
 endfunction
 " }}}
 " colors {{{
-" set background=dark
+set background=dark
 
 call pathogen#infect()
 
