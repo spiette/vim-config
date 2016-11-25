@@ -7,6 +7,7 @@ set expandtab
 set ignorecase
 set smartcase
 set nohlsearch
+set showmatch
 " }}}
 " status {{{
 set laststatus=2
