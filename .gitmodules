@@ -49,3 +49,6 @@
 [submodule "bundle/vim-airline-themes"]
 	path = bundle/vim-airline-themes
 	url = https://github.com/vim-airline/vim-airline-themes
+[submodule "indentpython"]
+	path = bundle/indentpython
+	url = https://github.com/vim-scripts/indentpython.vim
