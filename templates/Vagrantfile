@@ -1,24 +1,45 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# Summary: Vagrant to provision through libvirt YAML-defined VMs
+
+# This Vagrantfile main purpose is to use yaml to define what you want to have. It provides:
+# - VMs (of course)
+# - Networks
+# - Volumes
+# - Provisionners
+#   - shell
+#   - ansible
+#   - serverspec
+#
+# With ansible you can set groups and variables to test your roles
+# If you run `vagrant status`, you'll be provided with a small boxes.yml template in test/vagrant
+# You can change the domain name in globals.yml
+
+# Requirements: libvirt . Mention of VirtualBox is a beginner accident.
+#
+# For convenience, vagrant-libvirt URL: https://github.com/vagrant-libvirt/vagrant-libvirt
+#
+# RFE: Add support for docker, maybe? I'd rather use docker-compose or k8s at this point.
+
 require 'yaml'
 require 'fileutils'
 
 # Files used to customise Vagrantfile behaviour
-defaults_file = 'test/vagrant/defaults.yml'
+globals_file = 'test/vagrant/globals.yml'
 boxes_file = 'test/vagrant/boxes.yml'
 group_vars_file = 'test/vagrant/group_vars.yml'
 
-if File.file?(defaults_file)
+if File.file?(globals_file)
   begin
-    defaults = YAML.load_file(defaults_file)
+    globals = YAML.load_file(globals_file)
   rescue
-    $stderr.puts "#{defaults_file} was not load properly"
-    defaults = Hash.new
+    $stderr.puts "#{globals_file} was not load properly"
+    globals = Hash.new
   end
 else
-    $stderr.puts "#{defaults_file} is not existing"
-    defaults = Hash.new
+    $stderr.puts "no global file #{globals_file}, using defaults"
+    globals = Hash.new
 end
 if File.file?(boxes_file)
   begin
@@ -32,8 +53,15 @@ else
     boxes = [
       {
         :hostname => 'vagrant',
-        :memory => '256',
-        :cpus => '1',
+        :memory => 256,
+        :cpus => 1,
+        :networks => [
+          :private_network => [ :ip => '10.1.2.3' ]
+        ],
+        :storage => [
+          { :size => '1G', :device => '/dev/vdc' },
+          { :size => '2G', :path => 'my_image', :allow_existing => true }
+        ],
         :ansible_playbook => 'site.yml',
         :ansible_hostvars => {
           'ansible_become' => true,
@@ -55,7 +83,7 @@ if File.file?(group_vars_file)
 end
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
+#  configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
@@ -65,13 +93,12 @@ Vagrant.configure(2) do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "centos/7"
 
   config.ssh.insert_key = false
 
   # Set default domain
-  if defaults.has_key?(:domain)
-    domain = defaults[:domain]
+  if globals.has_key?(:domain)
+    domain = globals[:domain]
   else
     domain = 'localdomain'
   end
@@ -113,10 +140,43 @@ Vagrant.configure(2) do |config|
       node.vm.hostname = opts[:hostname]
       node.hostmanager.aliases = [ fqdn ]
       node.hostmanager.domain_name = domain
+      if opts.has_key?(:box)
+        node.vm.box = opts[:box]
+      else
+        # we should look in globals.yml
+        node.vm.box = "centos/7"
+      end
       [ 'libvirt', 'virtualbox' ].each do |provider|
         node.vm.provider provider do |vm|
           vm.memory = opts[:memory]
           vm.cpus = opts[:cpus]
+        end
+      end
+      # storage, libvirt only
+      if opts.has_key?(:storage)
+        node.vm.provider :libvirt do |libvirt|
+          opts[:storage].each do |s|
+            libvirt.storage :file, s
+          end
+        end
+      end
+      # network options
+      if opts.has_key?(:networks) and opts[:networks].is_a?(Array)
+        opts[:networks].each do |network|
+          if network.is_a?(Hash)
+            network_identifier = network.keys[0]
+            network_options = network[network_identifier]
+            if network_options.is_a?(Hash)
+              network_options.keys.each do |k|
+                unless k.class == Symbol
+                  $stdout.puts "Set your options using symbols, :myopt"
+                end
+              end
+              config.vm.network network_identifier, network_options
+            else
+              $stdout.write("network_options is not a Hash, it's rather a #{network_options.class}\n")
+            end
+          end
         end
       end
       # ansible
@@ -132,26 +192,6 @@ Vagrant.configure(2) do |config|
           ansible.groups = ansible_groups
         end
       end
-      # network options
-      if opts.has_key?(:networks) and opts[:networks].is_a?(Array)
-        opts[:networks].each do |network|
-          if network.is_a?(Hash)
-            network_command = network.keys[0]
-            network_options = network[network_command]
-            if network_options.is_a?(Hash)
-              network_options.keys.each do |k|
-                unless k.class == Symbol
-                  $stdout.puts "Set your options using symbols, :myopt"
-                end
-              end
-              config.vm.network network_command, network_options
-            else
-              $stdout.write('network_options is not a Hash')
-              $stdout.write(network_options.class)
-            end
-          end
-        end
-      end
       # shell
       if opts.has_key?(:shell)
         # using path
@@ -165,8 +205,8 @@ Vagrant.configure(2) do |config|
       end
       # bats
       if opts.has_key?(:bats)
-        config.vm.provision "shell", inline: 'yum install -y bats'
-        config.vm.provision "shell", inline: "bats #{opts[:bats]}"
+        config.vm.provision "shell", inline: 'yum install -q -y bats'
+        config.vm.provision "shell", inline: "/usr/bin/bats #{opts[:bats]}"
       end
       # serverspec
       if opts.has_key?(:serverspec) and opts.has_key?(:serverspec_path)
@@ -184,3 +224,4 @@ Vagrant.configure(2) do |config|
     end
   end
 end
+
