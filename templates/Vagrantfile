@@ -14,7 +14,14 @@
 #
 # With ansible you can set groups and variables to test your roles
 # If you run `vagrant status`, you'll be provided with a small boxes.yml template in test/vagrant
-# You can change the domain name in globals.yml
+# You can change the domain name in boxes.yml by adding an item in the list with :globals
+#
+#   !yaml
+#   ---
+#   - :globals:
+#       :domain: foo.org
+#   - hostname: host1
+#   ...
 
 # Requirements: libvirt . Mention of VirtualBox is a beginner accident.
 #
@@ -26,24 +33,14 @@ require 'yaml'
 require 'fileutils'
 
 # Files used to customise Vagrantfile behaviour
-globals_file = 'test/vagrant/globals.yml'
 boxes_file = 'test/vagrant/boxes.yml'
 group_vars_file = 'test/vagrant/group_vars.yml'
 
-if File.file?(globals_file)
-  begin
-    globals = YAML.load_file(globals_file)
-  rescue
-    $stderr.puts "#{globals_file} was not load properly"
-    globals = Hash.new
-  end
-else
-    $stderr.puts "no global file #{globals_file}, using defaults"
-    globals = Hash.new
-end
 if File.file?(boxes_file)
   begin
     boxes = YAML.load_file(boxes_file)
+    globals = boxes.select { |i| i.include?(:globals) }.first[:globals]
+    boxes.select! { |i| i.include?(:hostname) }
   rescue
     $stderr.puts "#{boxes_file} was not load properly"
     boxes = Array.new
