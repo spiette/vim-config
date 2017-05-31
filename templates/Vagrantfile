@@ -66,6 +66,12 @@ else
         :ansible_hostvars => {
           'ansible_become' => true,
         },
+        :ansible_opts => {
+          :tags => [
+            'repositories',
+            'install'
+          ]
+        },
         :ansible_groups => [ 'all', 'dev' ],
         :shell =>  { :path => '/bin/true' },
         :bats => 'test/integration/defaults/bats',
@@ -183,6 +189,11 @@ Vagrant.configure(2) do |config|
       if opts.has_key?(:ansible_playbook)
         config.vm.provision "ansible" do |ansible|
           ansible.playbook = opts[:ansible_playbook]
+          if opts.has_key?(:ansible_opts)
+            opts[:ansible_opts].each do |opt, value|
+              ansible.send("#{opt}=",value)
+            end
+          end
           if opts.has_key?(:ansible_verbose)
             ansible.verbose = opts[:ansible_verbose]
           end
@@ -224,4 +235,5 @@ Vagrant.configure(2) do |config|
     end
   end
 end
+
 
