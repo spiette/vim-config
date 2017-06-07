@@ -25,6 +25,7 @@ map <Leader>pq :r!pwqgen<CR>
 "
 " remove trailing spaces
 nnoremap <silent> ,s :let _s=@/<Bar>:%s/\s\+$//e<Bar>:let @/=_s<Bar>:nohl<CR>
+" paste control
 map ,v :set invpaste paste?<CR>
 set pastetoggle=,v
 " }}}
