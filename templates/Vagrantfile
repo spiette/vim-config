@@ -39,13 +39,20 @@ group_vars_file = 'test/vagrant/group_vars.yml'
 if File.file?(boxes_file)
   begin
     boxes = YAML.load_file(boxes_file)
-    globals = boxes.select { |i| i.include?(:globals) }.first[:globals]
+    globals_array = boxes.select { |i| i.include?(:globals) }
+    if globals_array.empty?
+      globals = Hash.new
+    else
+      globals = globals_array.first[:globals]
+    end
     boxes.select! { |i| i.include?(:hostname) }
   rescue
     $stderr.puts "#{boxes_file} was not load properly"
     boxes = Array.new
+    globals = Hash.new
   end
 else
+    globals = Hash.new
     $stderr.puts "Creating default boxes file: #{boxes_file}"
     boxes = [
       {
@@ -232,5 +239,3 @@ Vagrant.configure(2) do |config|
     end
   end
 end
-
-
