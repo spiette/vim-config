@@ -67,7 +67,7 @@ elseif &term == 'xterm'
 else
     colorscheme desert
 endif
-
+set t_ut=
 let g:airline_powerline_fonts = 1
 " }}}
 " folding {{{
