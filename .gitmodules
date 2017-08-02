@@ -52,3 +52,6 @@
 [submodule "indentpython"]
 	path = bundle/indentpython
 	url = https://github.com/vim-scripts/indentpython.vim
+[submodule "salt"]
+	path = bundle/salt
+	url = https://github.com/saltstack/salt-vim
