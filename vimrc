@@ -1,3 +1,6 @@
+" modeline {{{
+set nomodeline
+" }}}
 " tabs {{{
 set softtabstop=4
 set shiftwidth=4
